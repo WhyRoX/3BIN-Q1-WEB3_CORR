@@ -20,3 +20,5 @@ export default function Welcome() {
     </div>
   );
 }
+
+//LOL
