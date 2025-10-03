@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "dev": "nodemon --exec npm run start",
+    "build": "npm run start && npm run db:setup",
     "//db:setup": "needed for generating prisma client with correct database url from .env file",
     "db:setup": "prisma generate",
     "//prisma:start_db": "We need a specific version of prisma to fix a bug on windows",
