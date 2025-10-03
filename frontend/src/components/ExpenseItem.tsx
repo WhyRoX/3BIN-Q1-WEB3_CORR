@@ -1,5 +1,5 @@
 import type { Expense } from '../types/Expense';
-import { TableCell, TableRow } from '@/components/ui/table';
+import { TableCell, TableRow } from '../components/ui/table';
 
 interface ExpenseItemProps {
   expense: Expense;

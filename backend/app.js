@@ -11,9 +11,16 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// More flexible CORS configuration for Render
 app.use(
   cors({
-    origin: ['http://localhost:5173', /\.onrender\.com$/],
+    origin: [
+      'http://localhost:5173', 
+      /\.onrender\.com$/,
+      /localhost:\d+/  // Allow any localhost port for development
+    ],
+    credentials: true
   })
 );
 
