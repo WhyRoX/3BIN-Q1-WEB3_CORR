@@ -1,28 +1,22 @@
-import { useState, useEffect } from "react";
-import ExpenseItem from "../components/ExpenseItem";
-import ExpenseAdd from "../components/ExpenseAdd";
-import ExpenseSorter from "../components/ExpenseSorter";
-import type { Expense } from "../types/Expense";
+import { useState, useEffect } from 'react';
+import ExpenseItem from '../components/ExpenseItem';
+import ExpenseAdd from '../components/ExpenseAdd';
+import ExpenseSorter from '../components/ExpenseSorter';
+import type { Expense, ExpenseInput } from '../types/Expense';
+
+const host = import.meta.env.VITE_API_URL;
 
 export default function Home() {
-  const [sortingAlgo, setSortingAlgo] = useState<
-    (a: Expense, b: Expense) => number
-  >(() => () => 0);
+  const [sortingAlgo, setSortingAlgo] = useState<(_a: Expense, _b: Expense) => number>(() => () => 0);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const host = import.meta.env.VITE_API_URL || "http://unknown-api-url.com";
 
-  const sendApiRequestandHandleError = async (
-    method: string = "GET",
-    path: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    body?: any
-  ) => {
+  const sendApiRequestandHandleError = async (method: string = 'GET', path: string, body?: unknown) => {
     try {
       const response = await fetch(`${host}/api/${path}`, {
         method: method,
-        headers: body ? { "Content-Type": "application/json" } : {},
+        headers: body ? { 'Content-Type': 'application/json' } : {},
         body: body ? JSON.stringify(body) : null,
       });
 
@@ -31,8 +25,8 @@ export default function Home() {
       }
       return await response.json();
     } catch (error) {
-      console.error("API request failed:", error);
-      setError(error instanceof Error ? error.message : "An error occurred");
+      console.error('API request failed:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
@@ -40,7 +34,7 @@ export default function Home() {
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      const data = await sendApiRequestandHandleError("GET", "expenses");
+      const data = await sendApiRequestandHandleError('GET', 'expenses');
       setExpenses(data);
       setError(null);
     } finally {
@@ -52,14 +46,11 @@ export default function Home() {
     fetchExpenses();
   }, []);
 
-  const handleAddExpense = async (newExpense: Expense) => {
-    const newExpensesOptimistic = [newExpense, ...expenses]; // Optimistically update the state, whatever the sort method, add on top
+  const handleAddExpense = async (newExpenseForm: ExpenseInput) => {
+    const newExpenseOptimistic = { id: 'optimistic', ...newExpenseForm } as Expense; // We add a temporary id -1 for React key, it will be replaced when we get the real added expense from backend
+    const newExpensesOptimistic = [newExpenseOptimistic, ...expenses]; // Optimistically update the state, whatever the sort method, add on top
     setExpenses(newExpensesOptimistic);
-    const addedExpense = await sendApiRequestandHandleError(
-      "POST",
-      "expenses",
-      newExpense
-    );
+    const addedExpense = await sendApiRequestandHandleError('POST', 'expenses', newExpenseForm);
     const newExpensesActual = [addedExpense, ...expenses]; // Now that we have the actual added expense with id from backend, let's use it instead of the optimistically added one
     setExpenses(newExpensesActual);
   };
@@ -68,10 +59,7 @@ export default function Home() {
     setExpenses([]); // Clear current expenses optimistically
     setLoading(true);
 
-    const resetData = await sendApiRequestandHandleError(
-      "POST",
-      "expenses/reset"
-    );
+    const resetData = await sendApiRequestandHandleError('POST', 'expenses/reset');
     setExpenses(resetData.data);
     setLoading(false);
   };
@@ -99,17 +87,19 @@ export default function Home() {
 
       <h2>Expenses ({expenses.length})</h2>
 
-      {expenses.length > 0 && (
-        <ExpenseSorter setSortingAlgo={handleAlgoChange} />
-      )}
+      {expenses.length > 0 && <ExpenseSorter setSortingAlgo={handleAlgoChange} />}
 
       <div>
         {sortedExpenses.length === 0 ? (
           <p>No expenses found.</p>
         ) : (
-          sortedExpenses.map((expense) => (
-            <ExpenseItem key={expense.id} expense={expense} />
-          ))
+          <table>
+            <tbody>
+              {sortedExpenses.map((expense) => (
+                <ExpenseItem key={expense.id} expense={expense} />
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

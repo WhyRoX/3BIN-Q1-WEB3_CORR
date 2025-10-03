@@ -6,19 +6,14 @@ interface ExpenseItemProps {
 
 export default function ExpenseItem({ expense }: ExpenseItemProps) {
   return (
-    <div>
-      <div>
-        <strong>Date:</strong> {expense.date}
-      </div>
-      <div>
-        <strong>Description:</strong> {expense.description}
-      </div>
-      <div>
-        <strong>Payer:</strong> {expense.payer}
-      </div>
-      <div>
-        <strong>Amount:</strong> ${expense.amount.toFixed(2)}
-      </div>
-    </div>
+    <tr>
+      <td>#{expense.id}</td>
+      <td>{expense.date}</td>
+      <td>{expense.description}</td>
+      <td>
+        Paid by <span>{expense.payer}</span>
+      </td>
+      <td>${expense.amount.toFixed(2)}</td>
+    </tr>
   );
 }
