@@ -175,6 +175,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -185,13 +186,20 @@ const config = {
   },
   "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id                   Int        @id @default(autoincrement())\n  name                 String\n  email                String     @unique\n  bankAccount          String? // optional\n  paidExpenses         Expense[]  @relation(\"PayerExpenses\")\n  transfersOut         Transfer[] @relation(\"UserTransfersSource\")\n  transfersIn          Transfer[] @relation(\"UserTransfersTarget\")\n  participatedExpenses Expense[]  @relation(\"ParticipantExpenses\")\n}\n\nmodel Expense {\n  id           Int      @id @default(autoincrement())\n  description  String\n  amount       Float\n  date         DateTime @default(now())\n  payer        User     @relation(\"PayerExpenses\", fields: [payerId], references: [id])\n  payerId      Int\n  participants User[]   @relation(\"ParticipantExpenses\")\n}\n\nmodel Transfer {\n  id       Int      @id @default(autoincrement())\n  amount   Float\n  date     DateTime @default(now())\n  source   User     @relation(\"UserTransfersSource\", fields: [sourceId], references: [id])\n  sourceId Int\n  target   User     @relation(\"UserTransfersTarget\", fields: [targetId], references: [id])\n  targetId Int\n}\n",
   "inlineSchemaHash": "8d4d05e4de7bbf27ff046173ac44680334c3579825eff679c7dd14791b5ce0c6",
-  "copyEngine": false
+  "copyEngine": true
 }
 config.dirname = '/'
 
 config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"bankAccount\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"paidExpenses\",\"kind\":\"object\",\"type\":\"Expense\",\"relationName\":\"PayerExpenses\"},{\"name\":\"transfersOut\",\"kind\":\"object\",\"type\":\"Transfer\",\"relationName\":\"UserTransfersSource\"},{\"name\":\"transfersIn\",\"kind\":\"object\",\"type\":\"Transfer\",\"relationName\":\"UserTransfersTarget\"},{\"name\":\"participatedExpenses\",\"kind\":\"object\",\"type\":\"Expense\",\"relationName\":\"ParticipantExpenses\"}],\"dbName\":null},\"Expense\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"payer\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"PayerExpenses\"},{\"name\":\"payerId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"participants\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ParticipantExpenses\"}],\"dbName\":null},\"Transfer\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"amount\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"date\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"source\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserTransfersSource\"},{\"name\":\"sourceId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"target\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserTransfersTarget\"},{\"name\":\"targetId\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
-config.engineWasm = undefined
+config.engineWasm = {
+  getRuntime: async () => require('./query_engine_bg.js'),
+  getQueryEngineWasmModule: async () => {
+    const loader = (await import('#wasm-engine-loader')).default
+    const engine = (await loader).default
+    return engine
+  }
+}
 config.compilerWasm = undefined
 
 config.injectableEdgeEnv = () => ({

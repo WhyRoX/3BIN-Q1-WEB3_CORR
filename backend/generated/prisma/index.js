@@ -176,6 +176,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -186,7 +187,7 @@ const config = {
   },
   "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id                   Int        @id @default(autoincrement())\n  name                 String\n  email                String     @unique\n  bankAccount          String? // optional\n  paidExpenses         Expense[]  @relation(\"PayerExpenses\")\n  transfersOut         Transfer[] @relation(\"UserTransfersSource\")\n  transfersIn          Transfer[] @relation(\"UserTransfersTarget\")\n  participatedExpenses Expense[]  @relation(\"ParticipantExpenses\")\n}\n\nmodel Expense {\n  id           Int      @id @default(autoincrement())\n  description  String\n  amount       Float\n  date         DateTime @default(now())\n  payer        User     @relation(\"PayerExpenses\", fields: [payerId], references: [id])\n  payerId      Int\n  participants User[]   @relation(\"ParticipantExpenses\")\n}\n\nmodel Transfer {\n  id       Int      @id @default(autoincrement())\n  amount   Float\n  date     DateTime @default(now())\n  source   User     @relation(\"UserTransfersSource\", fields: [sourceId], references: [id])\n  sourceId Int\n  target   User     @relation(\"UserTransfersTarget\", fields: [targetId], references: [id])\n  targetId Int\n}\n",
   "inlineSchemaHash": "8d4d05e4de7bbf27ff046173ac44680334c3579825eff679c7dd14791b5ce0c6",
-  "copyEngine": false
+  "copyEngine": true
 }
 
 const fs = require('fs')
@@ -223,3 +224,9 @@ const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
+// file annotations for bundling tools to include these files
+path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
+path.join(process.cwd(), "generated/prisma/libquery_engine-darwin-arm64.dylib.node")
+// file annotations for bundling tools to include these files
+path.join(__dirname, "schema.prisma");
+path.join(process.cwd(), "generated/prisma/schema.prisma")
