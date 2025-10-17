@@ -7,11 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+coverage
 node_modules
+dist
+build
+dist-ssr
 *.local
+.env
 
 # Editor directories and files
-.vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -20,5 +24,3 @@ node_modules
 *.njsproj
 *.sln
 *.sw?
-
-/generated/prisma
